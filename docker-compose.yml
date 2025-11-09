@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # PHP Service
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: nutritrakpro-backend
+    container_name: nutritrakpro-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - ./backend/docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    networks:
+      - nutritrakpro-network
+    depends_on:
+      - db
+
+  # Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: nutritrakpro-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www
+      - ./backend/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - nutritrakpro-network
+    depends_on:
+      - app
+
+  # MySQL Service
+  db:
+    image: mysql:8.0
+    container_name: nutritrakpro-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-nutritrakpro}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-nutritrak}
+    ports:
+      - "3306:3306"
+    volumes:
+      - nutritrakpro-mysql-data:/var/lib/mysql
+      - ./backend/docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - nutritrakpro-network
+
+  # PHPMyAdmin Service (optionnel)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: nutritrakpro-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8080:80"
+    networks:
+      - nutritrakpro-network
+    depends_on:
+      - db
+
+# Docker Networks
+networks:
+  nutritrakpro-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  nutritrakpro-mysql-data:
+    driver: local

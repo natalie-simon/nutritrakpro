@@ -852,7 +852,49 @@ Closes #123
 
 ---
 
-### Installation Locale
+### Installation avec Docker (Recommandé pour Développement)
+
+**Prérequis Docker :**
+- Docker 20.10+
+- Docker Compose 2.0+
+- Make (optionnel)
+
+**Installation en une commande :**
+```bash
+git clone https://github.com/natalie-simon/nutritrakpro.git
+cd nutritrakpro
+make setup
+```
+
+Cette commande :
+- ✅ Construit les images Docker (PHP 8.2, Nginx, MySQL 8.0)
+- ✅ Démarre tous les conteneurs
+- ✅ Installe les dépendances Composer
+- ✅ Configure l'environnement
+- ✅ Génère les clés (APP_KEY, JWT_SECRET)
+- ✅ Exécute les migrations
+
+**Services démarrés :**
+- Backend API : http://localhost:8000
+- PHPMyAdmin : http://localhost:8080 (user: nutritrak, password: root)
+- MySQL : localhost:3306
+
+**Commandes Docker courantes :**
+```bash
+make up              # Démarrer les conteneurs
+make down            # Arrêter les conteneurs
+make logs            # Voir les logs
+make shell           # Accéder au shell backend
+make migrate         # Exécuter les migrations
+make test            # Exécuter les tests
+make help            # Voir toutes les commandes
+```
+
+📖 **Documentation complète :** [README-DOCKER.md](../README-DOCKER.md)
+
+---
+
+### Installation Locale (Manuelle)
 
 #### 1. Clone Repository
 ```bash

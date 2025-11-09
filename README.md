@@ -46,8 +46,30 @@ nutritrakpro/
 
 ## 🚀 Installation Rapide
 
-### Prérequis
+### Option 1 : Avec Docker (Recommandé) 🐳
 
+**Prérequis :** Docker & Docker Compose
+
+```bash
+# Cloner le repository
+git clone https://github.com/natalie-simon/nutritrakpro.git
+cd nutritrakpro
+
+# Installation complète en une commande
+make setup
+
+# Résultat :
+# ✓ Backend API : http://localhost:8000
+# ✓ PHPMyAdmin : http://localhost:8080
+```
+
+📖 **Documentation complète Docker :** [README-DOCKER.md](README-DOCKER.md)
+
+---
+
+### Option 2 : Installation Manuelle
+
+**Prérequis :**
 - **Node.js** 18+ & NPM 9+
 - **PHP** 8.2+ & Composer 2.6+
 - **MySQL** 8.0+
