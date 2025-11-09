@@ -16,6 +16,18 @@ use App\Http\Controllers\Api\StatsController;
 |
 */
 
+// Version endpoint (public)
+Route::get('/version', function () {
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'version' => env('APP_VERSION', '0.0.1'),
+            'environment' => env('APP_ENV', 'production'),
+            'api_name' => 'NutriTrackPro API'
+        ]
+    ]);
+});
+
 // Public routes (no authentication required)
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
