@@ -1,8 +1,8 @@
-# NutriTrackPro - Documentation Projet
+# ScanAssiette - Documentation Projet
 
 ## 📋 Vue d'ensemble
 
-**NutriTrackPro** est une application web moderne de suivi nutritionnel offrant trois méthodes de saisie :
+**ScanAssiette** est une application web moderne de suivi nutritionnel offrant trois méthodes de saisie :
 - Scanner de codes-barres (Open Food Facts API)
 - Analyse de photos par IA (Clarifai API)
 - Recherche manuelle (USDA FoodData Central API)
@@ -21,7 +21,7 @@
 ### Approche : Mono-Repo avec Séparation Front/Back
 
 ```
-nutritrakpro/
+scanassiette/
 ├── frontend/          # SPA Vue.js 3 + Vite
 ├── backend/           # API RESTful Laravel 11
 ├── database/          # Migrations & seeders
@@ -276,7 +276,7 @@ CREATE TABLE password_resets (
 
 ### Base URL
 ```
-Production: https://api.nutritrakpro.com/api
+Production: https://api.scanassiette.com/api
 Development: http://localhost:8000/api
 ```
 
@@ -919,7 +919,7 @@ php artisan key:generate
 # DB_CONNECTION=mysql
 # DB_HOST=127.0.0.1
 # DB_PORT=3306
-# DB_DATABASE=nutritrakpro
+# DB_DATABASE=scanassiette
 # DB_USERNAME=root
 # DB_PASSWORD=
 
@@ -970,7 +970,7 @@ netlify deploy --prod --dir=dist
 
 **Environment Variables:**
 ```
-VITE_API_URL=https://api.nutritrakpro.com/api
+VITE_API_URL=https://api.scanassiette.com/api
 VITE_CLARIFAI_KEY=5d6ee14430e642408cc08bd89c64dd28
 VITE_USDA_KEY=PS2HqdAYDA7GatNE6wqMdfTvbvJOTG3Ars876FrD
 ```
@@ -1005,11 +1005,11 @@ php artisan view:cache
 ```bash
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://api.nutritrakpro.com
+APP_URL=https://api.scanassiette.com
 
 DB_CONNECTION=mysql
 DB_HOST=localhost
-DB_DATABASE=username_nutritrak
+DB_DATABASE=username_scanassiette
 DB_USERNAME=username_dbuser
 DB_PASSWORD=SecurePassword
 

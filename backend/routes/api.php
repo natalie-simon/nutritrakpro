@@ -23,7 +23,7 @@ Route::get('/version', function () {
         'data' => [
             'version' => env('APP_VERSION', '0.0.1'),
             'environment' => env('APP_ENV', 'production'),
-            'api_name' => 'NutriTrackPro API'
+            'api_name' => 'ScanAssiette API'
         ]
     ]);
 });

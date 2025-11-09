@@ -1,4 +1,4 @@
-# NutriTrackPro - Docker Development Commands
+# ScanAssiette - Docker Development Commands
 
 .PHONY: help build up down restart logs shell composer artisan migrate migrate-fresh test clean
 
@@ -9,7 +9,7 @@ YELLOW := \033[0;33m
 NC := \033[0m # No Color
 
 help: ## Afficher l'aide
-	@echo "$(BLUE)NutriTrackPro - Commandes Docker$(NC)"
+	@echo "$(BLUE)ScanAssiette - Commandes Docker$(NC)"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "$(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 
@@ -50,7 +50,7 @@ shell: ## Accéder au shell du conteneur backend
 	docker-compose exec app bash
 
 shell-db: ## Accéder au shell MySQL
-	docker-compose exec db mysql -u nutritrak -proot nutritrakpro
+	docker-compose exec db mysql -u scanassiet -proot scanassiette
 
 composer: ## Installer les dépendances Composer
 	@echo "$(YELLOW)Installing Composer dependencies...$(NC)"
@@ -121,7 +121,7 @@ clean: ## Nettoyer les conteneurs, volumes et images
 	@echo "$(GREEN)✓ Cleanup completed!$(NC)"
 
 setup: ## Installation complète (build, up, composer, migrate)
-	@echo "$(BLUE)=== NutriTrackPro - Installation Complète ===$(NC)"
+	@echo "$(BLUE)=== ScanAssiette - Installation Complète ===$(NC)"
 	@echo ""
 	@echo "$(YELLOW)1/6 Building Docker images...$(NC)"
 	@make build
@@ -148,7 +148,7 @@ setup: ## Installation complète (build, up, composer, migrate)
 	@echo "$(BLUE)Backend API disponible sur: http://localhost:8000$(NC)"
 	@echo "$(BLUE)PHPMyAdmin disponible sur: http://localhost:8080$(NC)"
 	@echo ""
-	@echo "Utilisateur DB: nutritrak / root"
+	@echo "Utilisateur DB: scanassiet / root"
 
 status: ## Voir le statut des conteneurs
 	docker-compose ps

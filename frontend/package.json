@@ -1,7 +1,7 @@
 {
-  "name": "nutritrakpro-frontend",
+  "name": "scanassiette-frontend",
   "version": "2.0.0",
-  "description": "NutriTrackPro - Frontend Vue.js Application",
+  "description": "ScanAssiette - Frontend Vue.js Application",
   "type": "module",
   "scripts": {
     "dev": "vite",

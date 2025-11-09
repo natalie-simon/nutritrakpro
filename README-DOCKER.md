@@ -1,4 +1,4 @@
-# NutriTrackPro - Guide Docker (Développement)
+# ScanAssiette - Guide Docker (Développement)
 
 Ce guide explique comment utiliser Docker pour le développement du backend Laravel.
 
@@ -17,7 +17,7 @@ Ce guide explique comment utiliser Docker pour le développement du backend Lara
 
 ### Volumes Persistants
 
-- `nutritrakpro-mysql-data` : Données MySQL (persiste après `docker-compose down`)
+- `scanassiette-mysql-data` : Données MySQL (persiste après `docker-compose down`)
 - `./backend` : Code source monté en volume (hot-reload)
 
 ---
@@ -48,7 +48,7 @@ Cette commande :
 
 **Résultat :**
 - Backend API : http://localhost:8000
-- PHPMyAdmin : http://localhost:8080 (user: `nutritrak`, password: `root`)
+- PHPMyAdmin : http://localhost:8080 (user: `scanassiet`, password: `root`)
 
 ---
 
@@ -177,15 +177,15 @@ docker-compose exec app composer [commande]
 Les variables Docker sont dans `.env.docker` :
 
 ```env
-DB_DATABASE=nutritrakpro
-DB_USERNAME=nutritrak
+DB_DATABASE=scanassiette
+DB_USERNAME=scanassiet
 DB_PASSWORD=root
 ```
 
 La configuration Laravel est dans `backend/.env` (créé automatiquement) :
 
 ```env
-APP_NAME=NutriTrackPro
+APP_NAME=ScanAssiette
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000
@@ -193,8 +193,8 @@ APP_URL=http://localhost:8000
 DB_CONNECTION=mysql
 DB_HOST=db                    # ← Nom du service Docker
 DB_PORT=3306
-DB_DATABASE=nutritrakpro
-DB_USERNAME=nutritrak
+DB_DATABASE=scanassiette
+DB_USERNAME=scanassiet
 DB_PASSWORD=root
 
 JWT_SECRET=...                # Généré automatiquement
@@ -295,9 +295,9 @@ make setup
 
 **Connexion :**
 - Serveur : `db`
-- Utilisateur : `nutritrak`
+- Utilisateur : `scanassiet`
 - Mot de passe : `root`
-- Base de données : `nutritrakpro`
+- Base de données : `scanassiette`
 
 ---
 
@@ -322,7 +322,7 @@ Voir le guide de déploiement dans `docs/PROJET.md`.
 ## 📁 Structure Docker
 
 ```
-nutritrakpro/
+scanassiette/
 ├── docker-compose.yml           # Orchestration services
 ├── .env.docker                  # Variables Docker
 ├── Makefile                     # Commandes simplifiées
@@ -452,10 +452,10 @@ composer require barryvdh/laravel-debugbar --dev
 
 ```bash
 # Exporter
-docker-compose exec db mysqldump -u nutritrak -proot nutritrakpro > backup.sql
+docker-compose exec db mysqldump -u scanassiet -proot scanassiette > backup.sql
 
 # Importer
-docker-compose exec -T db mysql -u nutritrak -proot nutritrakpro < backup.sql
+docker-compose exec -T db mysql -u scanassiet -proot scanassiette < backup.sql
 ```
 
 ---

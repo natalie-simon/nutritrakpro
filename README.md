@@ -1,4 +1,4 @@
-# NutriTrackPro
+# ScanAssiette
 
 **Application web de suivi nutritionnel avec scanner de codes-barres, analyse photo IA, et recherche manuelle.**
 
@@ -25,7 +25,7 @@
 ## 🏗️ Architecture Mono-Repo
 
 ```
-nutritrakpro/
+scanassiette/
 ├── frontend/           # Vue.js 3 + Vite SPA
 │   ├── src/
 │   ├── public/
@@ -93,7 +93,7 @@ composer install
 cp .env.example .env
 
 # Modifier .env avec vos paramètres DB
-# DB_DATABASE=nutritrakpro
+# DB_DATABASE=scanassiette
 # DB_USERNAME=root
 # DB_PASSWORD=votre_mot_de_passe
 
