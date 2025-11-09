@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriTrack Pro - Suivi Nutritionnel Gratuit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+
+        /* Dark mode styles */
+        .dark {
+            background: linear-gradient(to bottom right, #1f2937, #111827);
+        }
+        .dark .bg-white {
+            background-color: #1f2937;
+        }
+        .dark .text-gray-800 {
+            color: #f3f4f6;
+        }
+        .dark .text-gray-600 {
+            color: #d1d5db;
+        }
+        .dark .text-gray-700 {
+            color: #e5e7eb;
+        }
+        .dark .text-gray-500 {
+            color: #9ca3af;
+        }
+        .dark .border-gray-200 {
+            border-color: #374151;
+        }
+        .dark .border-gray-300 {
+            border-color: #4b5563;
+        }
+        .dark .bg-gray-50 {
+            background-color: #111827;
+        }
+        .dark .bg-gradient-to-br {
+            background: linear-gradient(to bottom right, #1f2937, #111827);
+        }
+        .dark input, .dark textarea {
+            background-color: #374151;
+            color: #f3f4f6;
+            border-color: #4b5563;
+        }
+        .dark input::placeholder {
+            color: #9ca3af;
+        }
+
+        #drop-zone.dragover {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+        .dark #drop-zone.dragover {
+            background-color: #064e3b;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen transition-colors duration-300">
+    <!-- Header -->
+    <header class="bg-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="text-4xl">🥗</div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800">NutriTrack Pro</h1>
+                        <p class="text-sm text-gray-600">Suivi nutritionnel 100% gratuit</p>
+                    </div>
+                </div>
+                <button onclick="toggleDarkMode()" class="p-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white shadow-md mt-4 overflow-x-auto">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-start md:justify-center space-x-1 min-w-max">
+                <button onclick="switchTab('scanner')" id="tab-scanner" class="tab-btn px-4 py-3 font-semibold text-green-600 border-b-2 border-green-600 transition whitespace-nowrap">
+                    📷 Scanner
+                </button>
+                <button onclick="switchTab('photo')" id="tab-photo" class="tab-btn px-4 py-3 font-semibold text-gray-500 hover:text-green-600 transition whitespace-nowrap">
+                    🍽️ Photo
+                </button>
+                <button onclick="switchTab('search')" id="tab-search" class="tab-btn px-4 py-3 font-semibold text-gray-500 hover:text-green-600 transition whitespace-nowrap">
+                    🔍 Recherche
+                </button>
+                <button onclick="switchTab('history')" id="tab-history" class="tab-btn px-4 py-3 font-semibold text-gray-500 hover:text-green-600 transition whitespace-nowrap">
+                    📊 Historique
+                </button>
+                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-4 py-3 font-semibold text-gray-500 hover:text-green-600 transition whitespace-nowrap">
+                    ⚙️ Paramètres
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
+
+        <!-- Scanner Section -->
+        <section id="section-scanner" class="section-content">
+            <div class="bg-white rounded-lg shadow-xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">📷</span> Scanner un code-barre
+                </h2>
+
+                <!-- Manual Barcode Input -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Entrez le code-barre manuellement :</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="manual-barcode" placeholder="Ex: 3017620422003"
+                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <button onclick="searchManualBarcode()"
+                                class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+                            Rechercher
+                        </button>
+                    </div>
+                </div>
+
+                <!-- HTTPS Warning -->
+                <div id="https-warning" class="hidden mb-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
+                    <p class="text-yellow-800 text-sm">
+                        ⚠️ <strong>Caméra non disponible</strong> : Le scanner caméra nécessite HTTPS pour fonctionner.
+                        <br>Utilisez la saisie manuelle du code-barre ci-dessus.
+                    </p>
+                </div>
+
+                <!-- Camera Scanner -->
+                <div class="mb-6">
+                    <button id="start-scan-btn" onclick="startScanner()"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        📸 Démarrer le scanner caméra
+                    </button>
+                    <button id="stop-scan-btn" onclick="stopScanner()"
+                            class="hidden w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        ⏹️ Arrêter le scanner
+                    </button>
+                </div>
+
+                <div id="reader" class="mb-6 hidden"></div>
+
+                <!-- Scanner Results -->
+                <div id="scanner-results" class="hidden fade-in">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Photo Analysis Section -->
+        <section id="section-photo" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">🍽️</span> Analyser une photo d'assiette
+                </h2>
+
+                <!-- API Status -->
+                <div id="clarifai-status" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                    <p class="text-blue-800">
+                        <strong>Clarifai API :</strong> <span id="api-status-text">Non configurée</span>
+                        | Utilisations ce mois : <span id="clarifai-usage">0</span>/1000
+                    </p>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Télécharger une photo :</label>
+                    <div id="drop-zone"
+                         class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 transition cursor-pointer">
+                        <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+                        <div id="drop-zone-content">
+                            <div class="text-6xl mb-4">📸</div>
+                            <p class="text-gray-600 mb-2">Glissez-déposez une photo ici</p>
+                            <p class="text-gray-500 text-sm mb-4">ou</p>
+                            <button onclick="document.getElementById('photo-input').click()"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+                                Sélectionner un fichier
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Preview -->
+                <div id="photo-preview" class="hidden mb-6">
+                    <img id="preview-image" class="rounded-lg shadow-lg max-w-full h-auto mx-auto max-h-96" alt="Preview">
+                    <button onclick="analyzePhoto()"
+                            class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        🔍 Analyser cette photo
+                    </button>
+                </div>
+
+                <!-- Analysis Loading -->
+                <div id="analysis-loading" class="hidden text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                    <p class="text-gray-600 mt-4">Analyse en cours...</p>
+                </div>
+
+                <!-- Photo Results -->
+                <div id="photo-results" class="hidden fade-in">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Manual Search Section -->
+        <section id="section-search" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">🔍</span> Recherche manuelle d'aliments
+                </h2>
+
+                <!-- Search Input -->
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Rechercher un aliment :</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="food-search" placeholder="Ex: pomme, poulet, riz..."
+                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                               onkeypress="if(event.key==='Enter') searchFood()">
+                        <button onclick="searchFood()"
+                                class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+                            Rechercher
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Base de données USDA avec plus de 300 000 aliments</p>
+                </div>
+
+                <!-- Search Loading -->
+                <div id="search-loading" class="hidden text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                    <p class="text-gray-600 mt-4">Recherche en cours...</p>
+                </div>
+
+                <!-- Search Results -->
+                <div id="search-results">
+                    <!-- Results will be inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- History Section -->
+        <section id="section-history" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                    <span class="mr-2">📊</span> Historique et statistiques
+                </h2>
+
+                <!-- Calorie Goal Progress -->
+                <div id="goal-progress" class="mb-6 p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Objectif du jour</h3>
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="font-semibold text-gray-700">
+                                <span id="calories-consumed">0</span> / <span id="calories-goal">2000</span> kcal
+                            </span>
+                            <span class="font-semibold text-purple-600" id="goal-percentage">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div id="goal-bar" class="progress-bar bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600">Reste : <span id="calories-remaining" class="font-bold">2000</span> kcal</p>
+                </div>
+
+                <!-- Daily Summary -->
+                <div id="daily-summary" class="mb-6 p-6 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Résumé du jour</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center bg-white rounded-lg p-4 shadow">
+                            <div class="text-3xl font-bold text-green-600" id="total-calories">0</div>
+                            <div class="text-sm text-gray-600">Calories</div>
+                        </div>
+                        <div class="text-center bg-white rounded-lg p-4 shadow">
+                            <div class="text-3xl font-bold text-blue-600" id="total-proteins">0</div>
+                            <div class="text-sm text-gray-600">Protéines (g)</div>
+                        </div>
+                        <div class="text-center bg-white rounded-lg p-4 shadow">
+                            <div class="text-3xl font-bold text-yellow-600" id="total-carbs">0</div>
+                            <div class="text-sm text-gray-600">Glucides (g)</div>
+                        </div>
+                        <div class="text-center bg-white rounded-lg p-4 shadow">
+                            <div class="text-3xl font-bold text-red-600" id="total-fats">0</div>
+                            <div class="text-sm text-gray-600">Lipides (g)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7-Day Chart -->
+                <div class="mb-6 p-6 bg-white border border-gray-200 rounded-lg">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Calories des 7 derniers jours</h3>
+                    <canvas id="calories-chart" height="80"></canvas>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mb-4 flex gap-2 justify-end">
+                    <button onclick="exportToCSV()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition text-sm">
+                        📥 Exporter CSV
+                    </button>
+                    <button onclick="clearHistory()"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition text-sm">
+                        🗑️ Effacer l'historique
+                    </button>
+                </div>
+
+                <!-- History List -->
+                <div id="history-list">
+                    <!-- History items will be inserted here -->
+                </div>
+
+                <div id="empty-history" class="text-center py-12 text-gray-400 hidden">
+                    <div class="text-6xl mb-4">📭</div>
+                    <p>Aucune entrée dans l'historique</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="section-settings" class="section-content hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="mr-2">⚙️</span> Paramètres
+                </h2>
+
+                <!-- Daily Calorie Goal -->
+                <div class="mb-8 p-6 bg-purple-50 border border-purple-200 rounded-lg">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">🎯 Objectif calorique quotidien</h3>
+                    <div class="flex gap-4 items-center">
+                        <input type="number" id="calorie-goal-input" placeholder="2000"
+                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                        <span class="text-gray-600">kcal/jour</span>
+                        <button onclick="saveCalorieGoal()"
+                                class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+                            Enregistrer
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2">Objectif actuel : <span id="current-goal" class="font-bold">2000</span> kcal</p>
+                </div>
+
+                <!-- API Keys Configuration -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">🔑 Configuration des APIs (100% gratuites)</h3>
+
+                    <!-- Clarifai API -->
+                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h4 class="font-bold text-gray-800 mb-2">Clarifai - Reconnaissance d'aliments</h4>
+                        <p class="text-sm text-gray-600 mb-3">
+                            Pour l'analyse de photos. <strong>1000 requêtes gratuites/mois</strong>
+                            <br>
+                            <a href="https://www.clarifai.com/products/api" target="_blank" class="text-blue-600 hover:underline">
+                                → Créer un compte gratuit sur Clarifai
+                            </a>
+                        </p>
+                        <input type="password" id="clarifai-key" placeholder="Votre clé API Clarifai"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500">
+                        <button onclick="saveClarifaiKey()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition text-sm">
+                            Enregistrer
+                        </button>
+                        <details class="mt-3">
+                            <summary class="cursor-pointer text-sm text-blue-600 hover:underline">Comment obtenir ma clé API ?</summary>
+                            <ol class="text-sm text-gray-600 mt-2 ml-4 list-decimal space-y-1">
+                                <li>Créez un compte sur <a href="https://www.clarifai.com/" target="_blank" class="text-blue-600 hover:underline">clarifai.com</a></li>
+                                <li>Allez dans "Settings" → "Security" → "Create API Key"</li>
+                                <li>Copiez la clé et collez-la ci-dessus</li>
+                                <li>Vous avez 1000 appels gratuits par mois</li>
+                            </ol>
+                        </details>
+                    </div>
+
+                    <!-- USDA API -->
+                    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <h4 class="font-bold text-gray-800 mb-2">USDA FoodData Central - Base nutritionnelle</h4>
+                        <p class="text-sm text-gray-600 mb-3">
+                            Pour la recherche d'aliments et données nutritionnelles. <strong>Gratuit et illimité</strong>
+                            <br>
+                            <a href="https://fdc.nal.usda.gov/api-key-signup.html" target="_blank" class="text-green-600 hover:underline">
+                                → Obtenir une clé API gratuite USDA
+                            </a>
+                        </p>
+                        <input type="password" id="usda-key" placeholder="Votre clé API USDA"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-green-500">
+                        <button onclick="saveUSDAKey()"
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition text-sm">
+                            Enregistrer
+                        </button>
+                        <details class="mt-3">
+                            <summary class="cursor-pointer text-sm text-green-600 hover:underline">Comment obtenir ma clé API ?</summary>
+                            <ol class="text-sm text-gray-600 mt-2 ml-4 list-decimal space-y-1">
+                                <li>Visitez <a href="https://fdc.nal.usda.gov/api-key-signup.html" target="_blank" class="text-green-600 hover:underline">fdc.nal.usda.gov/api-key-signup.html</a></li>
+                                <li>Remplissez le formulaire (nom, email, organisation optionnelle)</li>
+                                <li>Vous recevrez la clé par email instantanément</li>
+                                <li>Utilisations illimitées et gratuites</li>
+                            </ol>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- API Status -->
+                <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-3">📊 Statut des APIs</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Clarifai :</span>
+                            <span id="clarifai-status-text" class="font-semibold text-red-600">❌ Non configurée</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">USDA FoodData :</span>
+                            <span id="usda-status-text" class="font-semibold text-red-600">❌ Non configurée</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Open Food Facts :</span>
+                            <span class="font-semibold text-green-600">✅ Toujours disponible</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Management -->
+                <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-3">⚠️ Gestion des données</h4>
+                    <button onclick="clearAllData()"
+                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition w-full">
+                        Effacer toutes les données (historique + paramètres)
+                    </button>
+                    <p class="text-sm text-gray-600 mt-2">Cette action est irréversible</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white shadow-lg mt-12">
+        <div class="container mx-auto px-4 py-6 text-center text-gray-600">
+            <p class="mb-2">
+                NutriTrack Pro - Propulsé par
+                <a href="https://world.openfoodfacts.org" class="text-green-600 hover:underline" target="_blank">Open Food Facts</a>,
+                <a href="https://www.clarifai.com" class="text-blue-600 hover:underline" target="_blank">Clarifai</a> et
+                <a href="https://fdc.nal.usda.gov" class="text-green-600 hover:underline" target="_blank">USDA FoodData</a>
+            </p>
+            <p class="text-xs text-gray-500">100% gratuit - Toutes les données sont stockées localement</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
