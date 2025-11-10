@@ -79,25 +79,32 @@ export async function searchBarcode(barcode) {
 }
 
 // Clarifai Food Recognition API
-// Utilise la fonction serverless pour éviter les problèmes CORS
+// Note: Peut avoir des problèmes CORS en production (nécessite backend ou serverless)
 export async function analyzePhotoWithClarifai(base64Image) {
   try {
-    // Utiliser la fonction serverless (fonctionne en dev et prod)
     const response = await axios.post(
-      '/api/clarifai',
+      'https://api.clarifai.com/v2/models/food-item-recognition/outputs',
       {
-        base64Image: base64Image
+        inputs: [
+          {
+            data: {
+              image: {
+                base64: base64Image
+              }
+            }
+          }
+        ]
       },
       {
         headers: {
+          'Authorization': `Key ${CLARIFAI_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
     )
-    return { success: true, data: response.data.data }
+    return { success: true, data: response.data }
   } catch (error) {
-    console.error('Clarifai API error:', error)
-    return { success: false, error: error.response?.data?.error || error.message }
+    return { success: false, error: error.message }
   }
 }
 

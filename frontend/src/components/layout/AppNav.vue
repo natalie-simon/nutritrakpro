@@ -26,7 +26,7 @@ const route = useRoute()
 const tabs = [
   { path: '/history', label: 'Historique', icon: '📊' },
   { path: '/scanner', label: 'Scanner', icon: '📷' },
-  { path: '/photo', label: 'Photo', icon: '🍽️' },
+  // { path: '/photo', label: 'Photo', icon: '🍽️' }, // Désactivé temporairement (nécessite backend pour CORS)
   { path: '/search', label: 'Recherche', icon: '🔍' },
   { path: '/settings', label: 'Paramètres', icon: '⚙️' }
 ]
