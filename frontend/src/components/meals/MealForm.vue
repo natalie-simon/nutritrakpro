@@ -17,9 +17,40 @@
         />
       </div>
 
+      <!-- Ajustement Portion (si depuis scanner/API) -->
+      <div v-if="showPortionAdjustment" class="bg-blue-50 dark:bg-blue-900 rounded-lg p-4">
+        <label class="label">📏 Ajuster la portion consommée</label>
+        <div class="flex gap-2 items-center mb-2">
+          <input
+            v-model.number="portionQuantity"
+            type="number"
+            min="1"
+            step="1"
+            class="input flex-1"
+            @input="recalculateNutrients"
+          />
+          <select
+            v-model="portionUnit"
+            class="input w-24"
+            @change="recalculateNutrients"
+          >
+            <option value="g">g</option>
+            <option value="ml">ml</option>
+          </select>
+        </div>
+        <p class="text-xs text-gray-600 dark:text-gray-400">
+          ℹ️ Valeurs de base pour 100g. Les macros sont recalculées automatiquement.
+        </p>
+      </div>
+
       <!-- Calories -->
       <div>
-        <label class="label">Calories (kcal) *</label>
+        <label class="label">
+          Calories (kcal) *
+          <span v-if="showPortionAdjustment" class="text-xs text-gray-500">
+            (pour {{ portionQuantity }}{{ portionUnit }})
+          </span>
+        </label>
         <input
           v-model.number="form.calories"
           type="number"
@@ -27,6 +58,8 @@
           step="1"
           placeholder="450"
           class="input"
+          :readonly="showPortionAdjustment"
+          :class="{ 'bg-gray-100 dark:bg-gray-600': showPortionAdjustment }"
           required
         />
       </div>
@@ -42,6 +75,8 @@
             step="0.1"
             placeholder="25"
             class="input"
+            :readonly="showPortionAdjustment"
+            :class="{ 'bg-gray-100 dark:bg-gray-600': showPortionAdjustment }"
           />
         </div>
         <div>
@@ -53,6 +88,8 @@
             step="0.1"
             placeholder="30"
             class="input"
+            :readonly="showPortionAdjustment"
+            :class="{ 'bg-gray-100 dark:bg-gray-600': showPortionAdjustment }"
           />
         </div>
         <div>
@@ -64,6 +101,8 @@
             step="0.1"
             placeholder="20"
             class="input"
+            :readonly="showPortionAdjustment"
+            :class="{ 'bg-gray-100 dark:bg-gray-600': showPortionAdjustment }"
           />
         </div>
       </div>
@@ -108,7 +147,7 @@
         </button>
 
         <button
-          v-if="isEditMode"
+          v-if="isEditMode || showPortionAdjustment"
           type="button"
           @click="handleCancel"
           class="btn-secondary"
@@ -121,7 +160,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 
 const props = defineProps({
   meal: {
@@ -148,6 +187,16 @@ const isSubmitting = ref(false)
 const error = ref(null)
 const isEditMode = ref(false)
 
+// Gestion de l'ajustement de portion
+const baseNutrients = ref(null) // Valeurs pour 100g
+const portionQuantity = ref(100)
+const portionUnit = ref('g')
+
+// Détermine si on affiche l'ajustement de portion
+const showPortionAdjustment = computed(() => {
+  return baseNutrients.value !== null && (form.value.method === 'barcode' || form.value.method === 'photo')
+})
+
 // Initialiser le formulaire si en mode édition
 onMounted(() => {
   if (props.meal) {
@@ -165,15 +214,40 @@ watch(() => props.meal, (newMeal) => {
 })
 
 function loadMealData() {
+  if (!props.meal) return
+
   isEditMode.value = true
+
+  // Copier les données du meal
   form.value = {
     ...form.value,
     ...props.meal
+  }
+
+  // Si c'est un produit scanné/photo, sauvegarder les valeurs de base
+  if (props.meal.method === 'barcode' || props.meal.method === 'photo') {
+    // Sauvegarder les valeurs pour 100g
+    baseNutrients.value = {
+      calories: props.meal.calories,
+      proteins: props.meal.proteins,
+      carbs: props.meal.carbs,
+      fats: props.meal.fats
+    }
+
+    // Initialiser la portion
+    portionQuantity.value = props.meal.portion?.quantity || 100
+    portionUnit.value = props.meal.portion?.unit || 'g'
+  } else {
+    baseNutrients.value = null
   }
 }
 
 function resetForm() {
   isEditMode.value = false
+  baseNutrients.value = null
+  portionQuantity.value = 100
+  portionUnit.value = 'g'
+
   form.value = {
     name: '',
     calories: 0,
@@ -186,6 +260,20 @@ function resetForm() {
     source: 'manual'
   }
   error.value = null
+}
+
+/**
+ * Recalcule les valeurs nutritionnelles selon la portion
+ */
+function recalculateNutrients() {
+  if (!baseNutrients.value || !portionQuantity.value) return
+
+  const ratio = portionQuantity.value / 100
+
+  form.value.calories = Math.round(baseNutrients.value.calories * ratio)
+  form.value.proteins = parseFloat((baseNutrients.value.proteins * ratio).toFixed(1))
+  form.value.carbs = parseFloat((baseNutrients.value.carbs * ratio).toFixed(1))
+  form.value.fats = parseFloat((baseNutrients.value.fats * ratio).toFixed(1))
 }
 
 async function handleSubmit() {
@@ -202,8 +290,17 @@ async function handleSubmit() {
       throw new Error('Les calories ne peuvent pas être négatives')
     }
 
+    // Ajouter les infos de portion si applicable
+    const mealData = { ...form.value }
+    if (showPortionAdjustment.value) {
+      mealData.portion = {
+        quantity: portionQuantity.value,
+        unit: portionUnit.value
+      }
+    }
+
     // Émettre l'événement
-    emit('submit', { ...form.value })
+    emit('submit', mealData)
 
     // Réinitialiser le formulaire si ajout (pas édition)
     if (!isEditMode.value) {
@@ -232,6 +329,10 @@ function handleCancel() {
          rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent
          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
          transition;
+}
+
+.input:read-only {
+  @apply cursor-not-allowed;
 }
 
 .input::placeholder {
