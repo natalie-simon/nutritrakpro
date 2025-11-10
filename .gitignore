@@ -37,6 +37,3 @@ pnpm-debug.log*
 *.temp
 tmp/
 temp/
-
-# Vercel
-.vercel
