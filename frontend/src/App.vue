@@ -5,11 +5,16 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useUserStore } from '@/stores/user'
+import { computed, onMounted } from 'vue'
+import { useSettingsStore } from '@/stores/settings'
 
-const userStore = useUserStore()
-const isDarkMode = computed(() => userStore.profile?.dark_mode || false)
+const settingsStore = useSettingsStore()
+const isDarkMode = computed(() => settingsStore.darkMode)
+
+// Charger les settings au démarrage
+onMounted(() => {
+  settingsStore.loadSettings()
+})
 </script>
 
 <style>
